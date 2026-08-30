@@ -1,33 +1,40 @@
-# a basic compiler
+# ABC - A Basic Compiler
 
 ***WARNING***
 **WIP !**
 *Expect problems !*
 
----
-
-**BC.EXE**
-
-"Yet Anoter Basic Compiler" was taken already :-(
-Writing compilers is a common hobby !
+Slowly going from "please help to find bugs" to "please try to break it" ;-)
+Well, soon...
 
 ---
 
-Another "ancient relict".
+**ABC.EXE**
+
+The name...
+- "Yet Anoter Basic Compiler" was taken already :-( [https://github.com/tommyo123/YABCompiler]
+- "BasCom" also... [https://www.mcselec.com/index.php]
+- I got a complaint about "bc", a tool in linux i never used so far, a very cool thing !
+Writing compilers and cool tools is a common hobby !
+So its "*A Basic Compiler*", ABC.
+Quite memorable and easy to type.
+And since i had already "bc.exe", adding an A was easy.
+Still searching "more"... But it too long to type everytime:
+"abcdefghij.exe" ? "*A Basic Compiler from DE by Fce2, including Gos and Host stuff. I like it ! Jou too?*" (bad, i know)...
+
+---
+
+Its another "ancient relict".
 My decades old Pascal compiler, reworked now for Basic and tuned "a bit".
-1) tokenizes *.bas (text) files to *T.prg (its still interpreted Basic !)
-2) compiles *.bas (text) files to *.prg (pure compiled 6502 asm in prg format)
-3) compiles *.bas (text) files to *.c (optional: creates a c-variant)
-
-- strict CBM-Basic-V2 support (*--strict*) or with a bit more convenience, e.g. allow 'else' ;-)
-- creates annoying stuff on demand only (*--annoying-stuff*): *.asm, *.lbl, *.map, *T.prg
-- 12k more (A000-CFFF) with *--hiram* (but trampolines then !)
-- full (?) TSB support (*--tsb*)
-- AVR (!) support (*--avr*)
+- tokenizes *.bas (text) files to *T.prg (its still interpreted Basic !)
+- compiles *.bas (text) files to *.prg (pure compiled 6502 asm in prg format)
+- compiles *.bas (text) files to *.c (optional: creates a c-variant)
 
 ---
 
 ## Why ?
+
+### Why doing this ?
 
 Why another compiler for a system which is dead for decades ?
 There are many compilers already, over the last 50y many languages and dev-envs evolved.
@@ -35,6 +42,69 @@ If you want it efficient, use handwritten c (like oscar64 or llvm-mos), not basi
 And really fast is only direct handwritten assembler !
 So "why" is a question i cant really answer. My curiosity mainly ?
 And then it got better and better, and after I added host, gos and AVR support it started to be something new.
+I also (re)learned new/old "interesting" things:
+C64 basic has no else.
+Only the first 2 chars are used for var names.
+
+### Why using abc now !
+
+- Simple to use.
+	Just one exe. No installation of anything around, no JDK, .NET, any "cargo", external libs/deps...
+	Completely selfcontained, --init creates all you need.
+	Really just "abc xyz", not even ".bas" needed, yes, i'm lazy sometimes.
+- Win7+ and Linux build
+	Linux for x86_64 or aarch64.
+	I've no idea (yet) how to create mac binaries, sorry.
+- Fast binaries. Still working on it...
+	Compare yourself with other compilers or even languages.
+- Small binaries if needed. Still working on it...
+	Up to (down to ?) 50% size compared to speed mode, but also 50% speed then.
+	Packer at compiletime and Unpacker at runtime included. If you want the "raw thing" use --no-pack.
+- Fast/Small combinations possible with "pragmas".
+	Allows fast/big sections with relevant code to be maximal fast, but the rest very compressed.
+- Fast compile time
+	Normally <<1s per basic file.
+- Very strict CBM-Basic-V2 support for nerds
+	With *--strict* even RND is original.
+	Or more relaxed with a bit more convenience, e.g. allow 'else' ;-)
+- creates annoying stuff on demand only
+	*--annoying-stuff* creates: *.asm, *.lbl, *.map, *T.prg
+	The asm is just for reference, not (yet) compilable !
+	Maybe interesting and not so annoying: the tokenized *T.prg.
+- 12k more if needed
+	With *--hiram* $A000-$CFFF is used, not only up to $9FFF. Done automatically if it not fits.
+	But you have trampolines then (imagine a program in Axxx RAM region calling a ROM function also in $Axxx) !
+- full (?) TSB support (*--tsb*)
+	No ROMs or other runtime needed, completely self-contained.
+	Includes GOS support.
+- AVR (!) support (*--avr*)
+	Basic support for AVR (yes, both Basics here ;-)
+	Full C64-Basic-V2 support.
+	But basic support only for AVR. Not the advanced support 6502 has. You understand.
+- targets: c64, x16
+	Yes, Simons Basic and multitasking also on X16 !
+- Multitasking (*--gos*) !
+	Last but not least: my favorite gimmick !
+
+---
+
+## Downloads
+
+| what               | where               | how                              |
+|--------------------|---------------------|----------------------------------|
+|**bin/win/abc.exe** | x64 Windows 7+      | VS2026, no dll needed            |
+| bin/win/abcd.exe   | x64 Windows 7+      | cygwin gcc, needs cygwin1.dll !  |
+| bin/linux/abc      | x86_64 Linux ≥ 3,2  | gcc, static, compiled in wsl     |
+| bin/pi/abc         | aarch64 Linux ≥ 3.7 | gcc, static, compiled on my rpi4 |
+
+**runtime** (only needed for the "c" variants):
+(No download needed, all can be created with `--init`)
+| what               | why                 | who                           |
+|--------------------|---------------------|-------------------------------|
+| runtime.h          | for all c compilers | host or target (gcc or oscar) |
+| tsb.h              | tsb-on-host only    | host or target (gcc or oscar) |
+| x16.h              | x16-on-host only    | not yet !                     |
+| avr-crt0.S         | avr only            | very optional                 |
 
 ---
 
@@ -43,7 +113,7 @@ And then it got better and better, and after I added host, gos and AVR support i
 ### The C64 itself
 
 Assume you have `foobar.bas`:
-You have 3+ options for a prg:
+You have many options to get a running prg:
 
 **tokenized** `foobarT.prg`
 	Normally very uninteresting.
@@ -51,67 +121,131 @@ You have 3+ options for a prg:
 	Only created with `--annoying-stuff` enabled.
 **basic-compiled** `foobar.prg`
 	No asm needed anymore for games ;-)
-	Just `bc foobar`, not even .bas is needed
+	Just `abc foobar`, not even .bas is needed
+	In different flavors: `abc foobar size` for smaller/slower code.
 **c-compiled** e.g. `foobarO.prg`
-	Many times even faster if an "external optimizer" (like oscar64) is used.
-	`bc foobar c` to create c source instead of a prg.
+	Many times even faster if an "external optimizer" (like oscar64) is used:
+	`abc foobar c` to create c source instead of a prg.
 	`oscar64 foobar.c -o=foobarO.prg` to create the prg then.
 
 #### C64 Extras
 
-**CBM Basic V2**
+##### **CBM Basic V2**
 
 `--strict`: only "pure" c64 basic is allowed.
-Even RND() is original then.
 
-**TSB - Tuned Simons Basic**
+##### **TSB - Tuned Simons Basic**
 
 `--tsb` enables TSB support.
 Or a line with `REM! TSB`.
-No extra runtime needed, it creates a standalone prg.
-`tsb.h` needed for c-variant.
+No extra runtime/rom needed, it creates a standalone prg.
+`tsb.h` needed for c-variant only.
 
-**Multitasking**
-
-*[heavy WIP !]*
+##### **Multitasking**
 
 Again an ancient relict.
 GOS is my preemptive multitaker from the 90s...
+See here, updated to 6502 also: https://github.com/fce2/GOS
 
 `--gos` adds real preemtive mutitasking !
 Or a line with `REM! GOS`.
 
-*Its a very experimental feature now !*
-
-Like GOTO or GOSUB, you can GOTASK.
-And optionally YIELD.
-YIELD is not needed here, but it looks more scrambled without.
-
+Like GOTO or GOSUB, you can TASYNC a line:
+```basic
+	10 TASYNC 40
+	20 TASYNC 50
+	30 PRINT "!"; : GOTO 30
+	40 PRINT "HELLO"; : GOTO 40
+	50 PRINT "WORLD"; : GOTO 50
 ```
-	10 GOTASK 40 : REM start line 40 async
-	20 GOTASK 50 : REM start line 50 async
-	30 PRINT "!";:YIELD:GOTO 30
-	40 PRINT "HELLO";:YIELD:GOTO 40
-	50 PRINT "WORLD";:YIELD:GOTO 50
-```
+
+The scheduler ticks at 10Hz by default: 10 preemptive task switches per second, each time slice 100ms.
+If you have 2 tasks, each one will be ticked 5 times/s.
+If you have 10 tasks, each one will be ticked only one time/s for max 100ms!
+Switch overhead is 1..4ms, depending on ZP usage (e.g. if you work with floats, it takes longer).
+The 10 Hz default divides the std jiffy IRQ ($0314) by 5 (PAL 10 Hz; NTSC 12 Hz). NTSC users set `--gos-fast=6` for a true 10 Hz.
+`--gos-fast` ticks every jiffy (50/60 Hz), `--gos-fast=17` every 17th jiffy.
+The CIAs are not reprogrammed, i used std C64 init, so you can play here also and "tune".
+
+New "T"(ask) commands:
+*TASYNC*	start a line async, the only "must" command
+	`TASYNC 1000` starts line 1000 async and returns immediately
+*TYIELD*	voluntary yield (not needed)
+	`TYIELD` if you are done with this ticks work
+*TLOCK*		a critical section for all commands after it (not needed)
+	`TLOCK:A=A+1:B=B-1` makes sure A and B dont get scrambled
+*TSLEEP*	TYIELD is polite, TSLEEP is politer, it allows to prevent very expensive task switches (not needed)
+	`TSLEEP 10` sleeps 10 ticks = 1 sec
+*TWAIT*		waits for another tasks TSIGNAL, not wasting time
+	`TWAIT 1` waits for signal '1'
+*TSIGNAL*	signals another tasks TWAIT to continue
+	`TSIGNAL 1` signals '1'
 
 Each task needs an own stack.
 6502 is very limited in stack size, all tasks have to share (the same !) 256 bytes in $01xx.
 Each task gets its own slice in $01xx of GOS_STACK_SIZE bytes (which limits the amount of tasks).
-With `10 REM! GOS: TASKS:8` or `10 REM! GOS: STACK:32` you can influence the "OS" a bit.
+With `10 REM! GOS TASKS 8` or `10 REM! GOS STACK 32` you can influence the "OS" a bit.
 
-Multitasking makes *everything a bit slower*, even with only one task !
-At the moment the whole ZP needs to be saved/restored on a taskswitch, thats really slow !
-*Dont use it if you dont need/want it.*
+*Overhead warning*
+*Just dont use it if you dont need/want it.*
+Multitasking makes *everything a 'bit' slower*, even with only one task !
+At the moment nearly the whole ZP needs to be saved/restored on a taskswitch to make basic work well in all situations, thats really slow !
+The current overhead is ~1% to 98% "(G)OS time" ! Up to you !
+This mostly depends on your TYIELD usage.
 
-One restriction: max 4 tasks (main + 3 more) are possible due to the 256 byte stack restiction, so each task gets 64 bytes.
-This is needed if you basic program does e.g. PRINT, functions needing a bigger stack.
-If you restrict the code to peek/pokes only, you can use also 8 tasks.
-You can change that with `--gos-tasks=4` and `--gos-stack=64`.
+Here its ~1.1% scheduler overhead:
+30 and 40 run 100ms each, then a cheap switch.
+```basic
+	10 REM! GOS
+	20 TASYNC 40
+	30 GOTO 30
+	40 GOTO 40
+```
 
-Multitasking it very fragile !
+Here its ~97.8% scheduler overhead!
+30 and 40 switch only and always.
+Well, they dont have to do anything else !
+```basic
+	10 REM! GOS
+	20 TASYNC 40
+	30 TYIELD:GOTO 30
+	40 TYIELD:GOTO 40
+```
+
+One solution for delays is just using many TYIELDs. Each one "sleeps" until the next wakeup.
+However, then OS gets a lot of cycles, not other tasks.
+The better solution is TSLEEP:
+A `TSLEEP 5` is basicly the same as `TYIELD:TYIELD:TYIELD:TYIELD:TYIELD`.
+But the ZP overhead of empty switching is prevented !
+
+Btw, the "pure" gos c implementation needs ~1% overhead only (but saves no ZP entries) !
+
+One restriction: <16 tasks (main + 15 more) are possible due to the 256 byte stack restiction, so each task gets 16+ bytes min only.
+Use 4 tasks if you basic program does e.g. PRINT, functions needing a bigger stack. Play...
+If you restrict the code to peek/pokes only, you can use more tasks.
+With simple tasks like `1000 POKE 1024+0,PEEK(1024+0)+1:GOTO 1000` i got 14 running.
+You can change that with `--gos-tasks=4` or `--gos-stack=64` or with a pragma: `10 REM! GOS TASKS 16`.
+
+Yes, i meassured a lot the last days.
+I like numbers.
+I can trust numbers.
+
+Multitasking is fragile to use !
 - No stack overflow is checked !
-- Its wip !
+- Again: its (kind of) "stable" but still wip !
+
+---
+
+### The X16
+
+`--target=x16` or `--x16` changes these things:
+	- CPU is WDC 65C02, no "normal" illegals are used, but WDC specific opcodes
+	- full (?) X16 basic is supported
+	- Code defines: __X16__ and __65C02__
+	- VERA is supported
+	- TSB optimized for VERA
+	- GOS optimized for X16 (still only 256 bytes stack !)
+	- Host exe for X16 is possible, with "native" X16 basic dialect as well as with TSB "improved" [not yet]
 
 ---
 
@@ -120,7 +254,7 @@ Multitasking it very fragile !
 **c-compiled**
 You can simply run all your basic programs on the host.
 Very convenient for a quick and fast test.
-Again, `bc foobar c` to create c source instead of a prg.
+Again, `abc foobar c` to create c source instead of a prg.
 Then `gcc -O2 foobar.c -o foobar.exe` and thats it.
 
 #### Host Extras
@@ -134,7 +268,7 @@ Then the runtime.h will use my cpu6502.c/h to simulate that on the host.
 *hint:* c64 file io
 Host debugging, e.g. file i/o, is very convenient.
 The runtime reads/writes real "*.seq" files.
-This works on the host:
+Something like this works on the host:
 ```
 	3501 BC=0:OPEN 1,8,2,TN$+",R"
 	3502 IF PEEK(144)<>0 THEN CLOSE 1:RETURN
@@ -156,14 +290,13 @@ Program your Arduiono in original C64 Basic V2 !
 The runtime then prepares the needed PORTB/DDRB/UDR0/...:
 
 ```
-	bc.exe breath.bas --avr=atmega328p
+	abc.exe breath.bas --avr=atmega328p
 	avr-gcc.exe -I ../.. -mmcu=atmega328p -Os -ffunction-sections -fdata-sections -DB_TIER=2 -DF_CPU=16000000UL -DBAUD=115200 -Wl,--gc-sections -Wl,-Map,breath.map breath.c -lm -o breath.elf
 	avr-objcopy.exe -O ihex breath.elf breath.hex
 	avr-objcopy.exe -O binary breath.elf breath.bin
 	avr-objdump.exe -d breath.elf > breath.asm
 	avrdude.exe -C <<<where your avr stuff is>>>/avrdude.conf -c arduino -p atmega328p -P COM6 -b 115200 -U flash:w:breath.hex
 ```
-
 
 **Tiers** `-DB_TIER=<n>` shrinks the runtime to what the program needs:
 - `B_TINY`  (0): integer-only (blink). `DOUBLE=long`, no float code linked.
@@ -250,18 +383,18 @@ A simple "breath" for Arnduino-UNO in 100% C64-Basic-V2:
 ## Usage
 
 > Compile manzoo.bas to manzooT.prg and manzoo.prg
-**`bc.exe manzoo.bas`**
+**`abc.exe manzoo.bas`**
 	creates: `manzoo.prg` is the compiled version of the bas file
-**`bc.exe -a manzoo.bas`**
+**`abc.exe -a manzoo.bas`**
 	creates also: `manzooT.prg` is the tokenized version of the bas file
 
 > Compile manzoo.bas to manzoo.c (and then to host manzoo.exe)
-**`bc.exe manzoo.bas c`**
+**`abc.exe manzoo.bas c`**
 	creates: `manzoo.c`
-**`gcc manzoo.c -o manzoo.exe`**
+**`gcc -O2 manzoo.c -o manzoo.exe`**
 	creates: `manzoo.exe` ... Wow, compare manzoo.prg and manzoo.exe how technology has developed !
 or
-**`oscar64 manzoo.c -o=manzooO.prg`**
+**`oscar64 _O3 manzoo.c -o=manzooO.prg`**
 	creates: `manzooO.prg`
 
 Very impressive to see the jump from manzooT.prg to manzoo.exe !
@@ -298,7 +431,7 @@ main.bas:
 ```
 
 *hint:* tokenized prg
-If you create the tokenized prg version with -a you get the "preprocessed" result.
+If you create the tokenized prg version with -a you get the "preprocessed" and combined result.
 
 **Easy project setup:**
 	`--init <dir>` creates a starter-environment with all you need: A demo program, the needed runtime.h, Makefile, ...
@@ -306,7 +439,7 @@ If you create the tokenized prg version with -a you get the "preprocessed" resul
 
 **(some) Commandline options**
 	`--verbose`			see which optimizers fire (or not)
-	`--version`			e.g. "bascom 2026-08-20 11:58:47"
+	`--version`			e.g. "abc 2026-08-20 11:58:47"
 	`--init [<dir>]`	create/init a new project
 	`--strict`			use strict cbm basic v2
 	`--no-illegals`		the compiler uses normally "verified" illegals to speed up
@@ -314,20 +447,28 @@ If you create the tokenized prg version with -a you get the "preprocessed" resul
 	`--annoying-stuff`	create tokenized prg and sidecars
 	`--tsb`				support Tunes Simons Basic
 	`--gos`				support multitasking
+	`--gos-fast[=N]`	preempt every jiffy (bare) or every Nth (def 10 Hz)
+	`--gos-tasks=N`		task slots, 2-16 (def 4, 15 is already 'bad')
+	`--gos-stack=N`		per-task stack, 16-128 (def 64)
 	`--avr[=mcu]`		compile for AVR
-	`--source`			"c64v2" for now
-	`--target`			"c64" and "x16" for now (Commander X16 is wip)
+	`--source`			"c64v2" for now (x16 basic in x16 mode)
+	`--target`			"c64" and "x16" for now
 	`--opt`				none, speed, size, c
+	`--romfloat`		use C64 rom float functions and not faster (but bigger) own ones
+	`--no-pack`			dont pack binaries
+	`--help`			helps
 	and the usual -o
 
-**"pramgas"** kind of...
-	`REM! STRICT`       .
-	`REM! NOILLEGALS`   .
-	`REM! TSB`          .
-	`REM! GOS`          .
-	`REM! AVR=`         .
-	`REM! SOURCE=`      .
-	`REM! TARGET=`      .
+**"pragmas"** kind of...
+	`REM! STRICT`       `--strict`
+	`REM! NOILLEGALS`   `--no-illegals`
+	`REM! TSB`          `--tsb`
+	`REM! GOS`          `--gos`
+	`REM! GOS TASKS N`  `--gos-tasks=N`
+	`REM! GOS STACK N`  `--gos-stack=N`
+	`REM! AVR=`         `--avr`
+	`REM! SOURCE=`      `--source`
+	`REM! TARGET=`      `--target`
 	`REM! +SPEED|+SIZE|+RESET` (see 'Regions' below)
 
 **Regions**
@@ -338,6 +479,16 @@ If memory gets low, you can select where to spend the valuable ram for speed:
 	`60 ...`         do packed stuff here
 	`70 REM! +RESET` resets to default form commandline
 
+**Packer**
+You can choose differnet packers:
+`--pack=0`	or `--no-pack`	no packing
+`--pack=1`					LZ
+`--pack=2`					ZX
+`--pack=3`					WIP
+Dont get confused by the packer sizes.
+A small binary does not automatically means it fits in ram!
+Check with `--no-pack` the real in-ram size (or look what abc says while compiling).
+
 ---
 
 ## Files
@@ -347,13 +498,17 @@ If memory gets low, you can select where to spend the valuable ram for speed:
 	3 modes:
 		- `TARGET_C64`
 			supports cc65, oscar64, llvm-mos, gate -> creates *.prg files
+			here a x16 is somehow a c64
 		- `TARGET_HOST`
-			supports gcc, msvc, ...                -> creates *.exe files
+			supports gcc, msvc, gate, ...          -> creates *.exe files
 		- `TARGET_AVR`
-			supports avr-gcc, ...                  -> creates *.bin files
+			supports avr-gcc, gate, ...            -> creates *.bin files
 
 - `tsb.h`
 	Just in case you want to run TSB programs on your host with `--tsb --opt c` ...
+
+- `x16.h`
+	[wip] run x16 prgs on host.
 
 - `avr-crt0.S`
 	Only needed for OPTIMIZE_C, when compiling with `--avr` !
@@ -369,26 +524,97 @@ If memory gets low, you can select where to spend the valuable ram for speed:
 
 - `balls.bas`
 	A super nice demo i found somewhere.
+	100 balls, each its own color (char 81), bounce via GOSUB, prints the frame time.
 - `life.bas`
 	Conway's game of life.
-- `manzoo.bas`
-	A super simple Mandelbrot Zoom.
-	As prg too slow, as exe too fast.
+	22x22, double-buffered (screen + shadow at $6000), 100 gens, counts neighbors by raw PEEK sum, prints gen time + alive.
 - `matrix.bas`
 	Well, Matrix...
+	40 columns, white head fading to green tail, each column its own speed and glyph, frame-timed.
 
 #### GOS
 
-- `gos.bas` hello world tasks
-- `gos1.bas` hello world tasks
+With multitasking it takes a while to get a feeling, so i added the GOS ovrhead.
+
+- `gos_hello.bas`
+	4 tasks: HELLO, WORLD, ! and TI (TI homes the cursor first).
+	**~3% GOS, no TYIELD so only the rare 10 Hz preemption fires.**
+- `gos_idle.bas`
+	2 tasks, no TYIELD, just GOTO loops.
+	**Best case, ~1% overhead.**
+- `gos_yield.bas`
+	2 tasks, only TYIELD.
+	**Worst case, ~98% overhead.**
+- `gos_color.bas`
+	2 tasks randomize border + background forever.
+	**~77% GOS, TYIELD every loop + RND.**
+- `gos_input.bas`
+	One task prints dots, another does INPUT/echo.
+	**~4% GOS, INPUT blocks the task so it barely switches.**
+- `gos_14.bas`
+	14 counter tasks (main + 13), each increments one screen cell.
+	**~1% GOS, no TYIELD, int POKE only -- pure preemption is cheap at 10 Hz.**
+- `gos_14y.bas`
+	Same as gos_14 but every task yields.
+	**~93% GOS -- the TYIELD storm is the cost, not the task count.**
+- `gos_15.bas`
+	15 tasks (main + 14, the real max), each yields.
+	**~93% GOS, same storm as 14y.**
+- `gos_16.bas`
+	16 tasks. Deliberately over the 15-task max, refused at compile time (safety check).
+- `gos_balls.bas`
+	4 bouncing balls, each its own speed (1..4 yields) and color.
+	**~60% GOS, the TYIELD count sets the speed.**
+- `gos_bars.bas`
+	4-bar equalizer, triangle wave, each bar at its own TYIELD rate.
+	**~14% GOS, each bar does a column of POKEs per switch so the work amortizes it.**
+- `gos_scroll.bas`
+	4 independent scrolling glyph streams, one task per row.
+	**~47% GOS.**
+- `gos_rain.bas`
+	Matrix digital rain, 4 columns, each its own speed, color and glyph (cycles 33..90).
+	**~74% GOS, the 4-column TYIELD storm.**
+- `gos_stars.bas`
+	Parallax starfield, 6 stars in 3 depth layers scrolling left at 3 speeds.
+	**~28% GOS, relies on preemption -- jumps to 68% with `--gos-fast`.**
+- `gos_maze.bas`
+	2 tasks: one prints maze chars (the `CHR$(205.5+RND)` trick), the other prints TI and sleeps.
+	**~39% GOS, TSLEEP-heavy so every-jiffy is actually cheaper (-31%).**
+- `gos_maze2.bas`
+	Maze variant: the second task yields instead of TSLEEP. BROKEN -- the TASYNC is commented out, so it runs single-task (~0% GOS). Uncomment line 20 to actually see it.
+- `gos_lissajous.bas`
+	3 Lissajous curves at once, each its own frequency.
+	**~15% GOS looks low, but it crawls: float SIN per point (RT_fsub 38%) dominates, not the scheduler. The horrible one.**
+- `gos_odo.bas`
+	Odometer, 3 digit-counter tasks cascading carries, int only.
+	**~5% GOS, no TYIELD, relies on preemption (-> 25% with `--gos-fast`).**
+	Compile with `-DTASKS8 --gos-tasks=8` for 7 digits.
+- `gos_worms.bas`
+	3 worms race for 1 food pellet.
+	**~74% GOS, TLOCK + TYIELD every step.**
+- `gos_catch.bas`
+	Player (cursor keys) flees a follower, a score task prints TI + points.
+	**~67% GOS, follower sleeps 7 so it barely adds switches.**
+- `gos_catch_NOLOCK.bas`
+	Catch without TLOCK: tasks set pending-move flags, the main loop applies them.
+	**~77% GOS, no TSLEEP (pure TYIELD) + float coords -> pricier than catch.**
+
+### X16
+
+see 
 
 ### Host
 
+- `manzoo.bas`
+	A super simple Mandelbrot Zoom.
+	As prg too slow, as exe too fast.
+	Fixed-point (no float), zooms 0.95x per frame through 5 preset coords, color = iterations AND 15.
+	Cool as prg, impressive as exe!
 - `bt2.bas`
-	`bt.bas` is a raytracer ("by marco64 14.06.2008").
+	`bt.bas` is a raytracer ("by marco64 14.06.2008") !!
 	I just added animation (wasd/crsr to move).
 	This is not prerendered, zoom out for even more fps !
-	Not 30h/frame, but 70+ frames/sec ...
+	Not 30h/frame (like bt.bas on the C64), but 70+ frames/sec ...
 - `mirrorball3.bas`
 	I found `mirrorball.tsb` on a disk named "raytr c't 1/86".
 	I just added animation (wasd/crsr to move, space to drop).
@@ -397,7 +623,7 @@ If memory gets low, you can select where to spend the valuable ram for speed:
 - `boing.bas`
 	A try of a "3d-pong".
 	For sure the slowest "game" ever (as prg) !
-	But too fast to play (as exe).
+	But to fast to play (as exe).
 - `povray.bas`
 	Also just a beginning, will never finish, just a test for me...
 	But, hey, this works already (use exe, not prg to test):
@@ -416,11 +642,14 @@ If memory gets low, you can select where to spend the valuable ram for speed:
 ### Both
 
 - `asm.bas`
-	Demo of integrated assembler and host simulator.
+	Demo of integrated assembler and host simulator (demo for -DSYS6502).
+	Never tested with --avr, why should the AVR simulate a 6502 ?
 
 ### Games
 
 Some ultra short and mostly really bad demos only, sorry.
+All char-mode only (its just easier to debug for me).
+Maybe i should add hires, sprite and sound things, rela games. Maybe later...
 All wip, and will most likely never finish.
 No game balancing, no correct timing, many bugs.
 I just needed some test objects for the compiler.
@@ -437,15 +666,20 @@ I dont even have much hardware currently, so i tested the LED and UART mainly (w
 - `morse.bas`
 	Showing PRINT over UART.
 
+Due to less interest (from my side and community) AVR is "on ice" now.
+
 ---
 
 ## Future
 
 Not sure yet.
-- performance increase
-- X16 full support
+- performance increase [WIP]
+- X16 full support [WIP]
 - C16/C128/... support (V3.5 / V7)
 - more source dialects
 - more targets
+- mega65 ?
+- 65816 / more X16 ?
 - funny things like AmigaBasic for C64 ?
 - let me know what you are interested in
+- automatic fastloader ?
